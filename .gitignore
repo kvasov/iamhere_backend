@@ -1,0 +1,22 @@
+# Dart
+.dart_tool/
+.packages
+.pub/
+pubspec.lock
+build/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+

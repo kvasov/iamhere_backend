@@ -1,0 +1,82 @@
+import 'dart:io';
+import 'package:postgres/postgres.dart';
+
+class Database {
+  static Connection? _connection;
+
+  static Future<Connection> getConnection() async {
+    if (_connection != null) {
+      return _connection!;
+    }
+
+    final host = Platform.environment['DB_HOST'] ?? 'localhost';
+    final port = int.tryParse(Platform.environment['DB_PORT'] ?? '5432') ?? 5432;
+    final database = Platform.environment['DB_NAME'] ?? 'iamhere';
+    final username = Platform.environment['DB_USER'] ?? 'dima';
+    final password = Platform.environment['DB_PASSWORD'] ?? '';
+
+    _connection = await Connection.open(
+      Endpoint(
+        host: host,
+        port: port,
+        database: database,
+        username: username,
+        password: password,
+      ),
+      settings: const ConnectionSettings(
+        sslMode: SslMode.disable, // важно для localhost
+      ),
+    );
+
+    await _initTables();
+    return _connection!;
+  }
+
+  static Future<void> _initTables() async {
+    final conn = _connection;
+    if (conn == null) return;
+
+    await conn.execute('''
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        login VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL
+      )
+    ''');
+
+    await conn.execute('''
+      CREATE TABLE IF NOT EXISTS places (
+        id SERIAL PRIMARY KEY,
+        latitude DOUBLE PRECISION NOT NULL,
+        longitude DOUBLE PRECISION NOT NULL,
+        country VARCHAR(255) NOT NULL,
+        address VARCHAR(500) NOT NULL,
+        name VARCHAR(255) NOT NULL
+      )
+    ''');
+
+    await conn.execute('''
+      CREATE TABLE IF NOT EXISTS reviews (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        place_id INTEGER NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+        text TEXT NOT NULL,
+        rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5)
+      )
+    ''');
+
+    await conn.execute(
+      'CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews(user_id)',
+    );
+    await conn.execute(
+      'CREATE INDEX IF NOT EXISTS idx_reviews_place_id ON reviews(place_id)',
+    );
+  }
+
+  static Future<void> close() async {
+    await _connection?.close();
+    _connection = null;
+  }
+}
