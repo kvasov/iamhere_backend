@@ -61,20 +61,55 @@ dart run lib/main.dart
 
 ### Места
 
-- `POST /api/places` - создание места
-- `GET /api/places` - получение всех мест
-- `GET /api/places/<id>` - получение места по ID
+- `POST /api/places` - создание места (с поддержкой загрузки фотографий)
+- `GET /api/places` - получение всех мест (с фотографиями)
+- `GET /api/places/<id>` - получение места по ID (с фотографиями)
 - `PUT /api/places/<id>` - обновление места
 - `DELETE /api/places/<id>` - удаление места
+- `GET /api/uploads/<path>` - получение изображения по пути
 
-**Пример создания места:**
+**Пример создания места с фотографиями:**
+
+Используйте `multipart/form-data` для отправки данных:
+
+```
+POST /api/places
+Content-Type: multipart/form-data
+
+Поля формы:
+- latitude: 55.7558
+- longitude: 37.6173
+- country: Россия
+- address: Красная площадь, 1
+- name: Красная площадь
+- photos: [файл1.jpg, файл2.jpg, ...] (можно несколько файлов)
+```
+
+**Пример с curl:**
+```bash
+curl -X POST http://localhost:8080/api/places \
+  -F "latitude=55.7558" \
+  -F "longitude=37.6173" \
+  -F "country=Россия" \
+  -F "address=Красная площадь, 1" \
+  -F "name=Красная площадь" \
+  -F "photos=@photo1.jpg" \
+  -F "photos=@photo2.jpg"
+```
+
+**Ответ содержит массив фотографий:**
 ```json
 {
+  "id": 1,
   "latitude": 55.7558,
   "longitude": 37.6173,
   "country": "Россия",
   "address": "Красная площадь, 1",
-  "name": "Красная площадь"
+  "name": "Красная площадь",
+  "photos": [
+    {"id": 1, "path": "uploads/1234567890_photo1.jpg"},
+    {"id": 2, "path": "uploads/1234567891_photo2.jpg"}
+  ]
 }
 ```
 
@@ -120,5 +155,16 @@ dart run lib/main.dart
 - `text` (TEXT)
 - `rating` (INTEGER, CHECK 1-5)
 
+### Таблица photos
+- `id` (SERIAL PRIMARY KEY)
+- `path` (VARCHAR(500) UNIQUE) - путь к файлу изображения
+
+### Таблица photo_places
+- `place_id` (INTEGER, FOREIGN KEY -> places.id)
+- `image_id` (INTEGER, FOREIGN KEY -> photos.id)
+- PRIMARY KEY (place_id, image_id)
+
 Таблицы создаются автоматически при первом запуске приложения.
+
+**Примечание:** Загруженные изображения сохраняются в папке `uploads/` в корне проекта.
 

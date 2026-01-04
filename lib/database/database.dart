@@ -73,6 +73,31 @@ class Database {
     await conn.execute(
       'CREATE INDEX IF NOT EXISTS idx_reviews_place_id ON reviews(place_id)',
     );
+
+    // Создание таблицы фотографий
+    await conn.execute('''
+      CREATE TABLE IF NOT EXISTS photos (
+        id SERIAL PRIMARY KEY,
+        path VARCHAR(500) NOT NULL UNIQUE
+      )
+    ''');
+
+    // Создание таблицы связи мест и фотографий
+    await conn.execute('''
+      CREATE TABLE IF NOT EXISTS photo_places (
+        place_id INTEGER NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+        image_id INTEGER NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
+        PRIMARY KEY (place_id, image_id)
+      )
+    ''');
+
+    // Создание индексов для фотографий
+    await conn.execute(
+      'CREATE INDEX IF NOT EXISTS idx_photo_places_place_id ON photo_places(place_id)',
+    );
+    await conn.execute(
+      'CREATE INDEX IF NOT EXISTS idx_photo_places_image_id ON photo_places(image_id)',
+    );
   }
 
   static Future<void> close() async {

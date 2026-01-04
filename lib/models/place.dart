@@ -1,3 +1,5 @@
+import 'photo.dart';
+
 class Place {
   final int? id;
   final double latitude;
@@ -5,6 +7,7 @@ class Place {
   final String country;
   final String address;
   final String name;
+  final List<Photo>? photos;
 
   Place({
     this.id,
@@ -13,6 +16,7 @@ class Place {
     required this.country,
     required this.address,
     required this.name,
+    this.photos,
   });
 
   Map<String, dynamic> toJson() {
@@ -23,6 +27,7 @@ class Place {
       'country': country,
       'address': address,
       'name': name,
+      'photos': photos?.map((p) => p.toJson()).toList(),
     };
   }
 
