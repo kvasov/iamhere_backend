@@ -12,7 +12,7 @@ class Database {
     final host = Platform.environment['DB_HOST'] ?? 'localhost';
     final port = int.tryParse(Platform.environment['DB_PORT'] ?? '5432') ?? 5432;
     final database = Platform.environment['DB_NAME'] ?? 'iamhere';
-    final username = Platform.environment['DB_USER'] ?? 'dima';
+    final username = Platform.environment['DB_USER'] ?? 'dmitry';
     final password = Platform.environment['DB_PASSWORD'] ?? '';
 
     _connection = await Connection.open(
