@@ -98,6 +98,24 @@ class Database {
     await conn.execute(
       'CREATE INDEX IF NOT EXISTS idx_photo_places_image_id ON photo_places(image_id)',
     );
+
+    // Создание таблицы токенов для авторизации
+    await conn.execute('''
+      CREATE TABLE IF NOT EXISTS tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(255) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NOT NULL
+      )
+    ''');
+
+    await conn.execute(
+      'CREATE INDEX IF NOT EXISTS idx_tokens_user_id ON tokens(user_id)',
+    );
+    await conn.execute(
+      'CREATE INDEX IF NOT EXISTS idx_tokens_token ON tokens(token)',
+    );
   }
 
   static Future<void> close() async {
